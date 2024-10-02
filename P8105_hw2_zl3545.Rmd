@@ -15,7 +15,8 @@ library(tidyverse)
 ## Load dataset
 
 ```{r load_data, message = FALSE}
-subway_df = read_csv("data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") |>
+subway_df = read_csv("data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
+                     col_types = cols(Route8 = "c", Route9 = "c", Route10 = "c", Route11 = "c")) |>
   janitor::clean_names() |> 
   select(line:entry | vending | ada) |> 
   mutate(entry = case_match(entry, 
@@ -25,10 +26,59 @@ subway_df = read_csv("data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") |>
 subway_df
 ```
 This dataset contains the following variables that describe the NYC subway 
-entrance and exit system: `r colnames(subway_df)`. After loading the dataset, 
-`clean_names()` was applied to convert column names to snake case, `select()` 
-was applied to retain columns desired, and `mutate()` was applied to convert 
-the data type of the `entry` column from `chr` to `lgl`. The dataset after 
-tidying up has a dimension of `r dim(subway_df)`.
+entrance and exit system: `r colnames(subway_df)`. When loading the dataset, 
+the data type of routes 8 to 11 were converted to `chr`. After loading the 
+dataset, `clean_names()` was applied to convert column names to snake case, 
+`select()` was applied to retain columns desired, and `mutate()` was applied to 
+convert the data type of the `entry` column from `chr` to `lgl`. The current 
+dataset has a dimension of `r dim(subway_df)`. 
+
+## Question 1
+```{r q1}
+subway_df |> 
+  distinct(line, station_name)
+```
+There are 465 distinct stations.
+
+## Question 2
+```{r q2}
+subway_df |> 
+  filter(ada == TRUE) |> 
+  distinct(line, station_name)
+```
+There are 84 ADA complaint stations.
+
+## Question 3
+```{r q3, eval = FALSE}
+subway_df |> 
+  filter(vending == "NO") |> 
+  pull(entry) |> 
+  mean()
+```
+The proportion of station entrances or exits without vending allow entrance is 
+0.377.
+
+## Question 4
+```{r q4_a}
+subway_df |> 
+  pivot_longer(route1:route11,
+               names_to = "route_num",
+               values_to = "route") |> 
+  filter(route == "A") |> 
+  select(station_name, line) |> 
+  distinct()
+```
+60 distinct srations serve the A train.
+
+```{r q4_b}
+subway_df |> 
+  pivot_longer(route1:route11,
+               names_to = "route_num",
+               values_to = "route") |> 
+  filter(route == "A", 
+         ada == TRUE) |> 
+  distinct(line, station_name)
+```
+Of the stations that serve the A train, 17 stations are ADA compliant.
 
 
