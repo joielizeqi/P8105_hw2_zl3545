@@ -6,15 +6,16 @@ output: github_document
 ---
 
 ```{r setup, include = FALSE}
-library(haven)
 library(tidyverse)
+library(haven)
+library(readxl)
 ```
 
 # Problem 1
 
 ## Load dataset
 
-```{r load_data, message = FALSE}
+```{r load_data_p1, message = FALSE}
 subway_df = read_csv("data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
                      col_types = cols(Route8 = "c", Route9 = "c", Route10 = "c", Route11 = "c")) |>
   janitor::clean_names() |> 
@@ -81,4 +82,47 @@ subway_df |>
 ```
 Of the stations that serve the A train, 17 stations are ADA compliant.
 
+# Problem 2
+
+## Load dataset
+Loading and tidying up the Mr. Trash Wheel dataset.
+```{r load_data_mr_tw, message = FALSE}
+mr_tw_df = read_excel("data/202409 Trash Wheel Collection Data.xlsx",
+                      sheet = 1,
+                      skip = 1,
+                      n_max = 652) |> 
+  janitor::clean_names() |> 
+  select(dumpster:homes_powered) |> 
+  mutate(sports_balls = as.integer(round(sports_balls)))
+
+mr_tw_df
+```
+
+Loading and tidying up the Professor Trash Wheel dataset.
+```{r load_data_prof_tw}
+prof_tw_df = read_excel("data/202409 Trash Wheel Collection Data.xlsx",
+                        sheet = 2,
+                        skip = 1,
+                        n_max = 118) |> 
+  janitor::clean_names() |> 
+  select(dumpster:homes_powered)
+
+prof_tw_df
+```
+
+Loading and tidying up the Gwynnda Trash Wheel dataset.
+```{r load_data_g_tw}
+g_tw_df = read_excel("data/202409 Trash Wheel Collection Data.xlsx",
+                     sheet = 4,
+                     skip = 1,
+                     n_max = 262) |> 
+  janitor::clean_names() |> 
+  select(dumpster:homes_powered)
+
+g_tw_df
+```
+## Combining datasets
+```{r combine_data}
+
+```
 
