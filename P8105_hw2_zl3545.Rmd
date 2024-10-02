@@ -105,7 +105,8 @@ prof_tw_df = read_excel("data/202409 Trash Wheel Collection Data.xlsx",
                         skip = 1,
                         n_max = 118) |> 
   janitor::clean_names() |> 
-  select(dumpster:homes_powered)
+  select(dumpster:homes_powered) |> 
+  mutate(year = as.character(year))
 
 prof_tw_df
 ```
@@ -117,12 +118,42 @@ g_tw_df = read_excel("data/202409 Trash Wheel Collection Data.xlsx",
                      skip = 1,
                      n_max = 262) |> 
   janitor::clean_names() |> 
-  select(dumpster:homes_powered)
+  select(dumpster:homes_powered) |> 
+  mutate(year = as.character(year))
 
 g_tw_df
 ```
 ## Combining datasets
 ```{r combine_data}
+mr_tw_df = mr_tw_df |> 
+  mutate(mr_tw_df, 
+         trash_wheel = "Mr. Trash Wheel") |> 
+  relocate(trash_wheel)
 
+prof_tw_df = mutate(prof_tw_df, 
+                    trash_wheel = "Professor Trash Wheel") |> 
+  relocate(trash_wheel)
+
+g_tw_df = mutate(g_tw_df, 
+                 trash_wheel = "Gwynnda Trash Wheel") |> 
+  relocate(trash_wheel)
+
+
+tw_df = bind_rows(mr_tw_df,
+                  prof_tw_df,
+                  g_tw_df)
+tw_df
 ```
 
+The combined dataset contains data of the trash collected by three trash wheel 
+vessels: `r unique(pull(tw_df, 1))`. These data describe the time (ie. month, 
+year, date), metrics (ie. weight in tons, volume in cubic yards), and types (ie. 
+plastic bottles, polystyrene, cigarette butts, etc.) of the trash collected. 
+Glass bottles data are exclusive to Mr. Trash Wheel and Professor Trash Wheel, 
+and sports balls data are exclusive to Mr. Trash Wheel. 
+
+In total, this dataset has `r dim(tw_df)[1]` observations. The total weight of 
+trash collected by Professor Trash Wheel is 
+`r sum(pull(filter(tw_df, trash_wheel == "Professor Trash Wheel"), weight_tons))`
+ tons. The total number of cigarette butts collected by Gwynnda in June 2022 is 
+`r format(sum(pull(filter(tw_df, trash_wheel == "Gwynnda Trash Wheel" & month == "June" & year == "2022"), cigarette_butts)), scientific = FALSE)`.
