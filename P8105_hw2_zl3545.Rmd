@@ -124,7 +124,7 @@ g_tw_df = read_excel("data/202409 Trash Wheel Collection Data.xlsx",
 g_tw_df
 ```
 ## Combining datasets
-```{r combine_data}
+```{r combine_data_p2}
 mr_tw_df = mr_tw_df |> 
   mutate(mr_tw_df, 
          trash_wheel = "Mr. Trash Wheel") |> 
@@ -157,3 +157,58 @@ trash collected by Professor Trash Wheel is
 `r sum(pull(filter(tw_df, trash_wheel == "Professor Trash Wheel"), weight_tons))`
  tons. The total number of cigarette butts collected by Gwynnda in June 2022 is 
 `r format(sum(pull(filter(tw_df, trash_wheel == "Gwynnda Trash Wheel" & month == "June" & year == "2022"), cigarette_butts)), scientific = FALSE)`.
+
+# Problem 3
+
+## Load dataset
+```{r load_data_p3, message = FALSE, collapse = TRUE}
+baker_df = read_csv("data/gbb_datasets/bakers.csv") |> 
+  janitor::clean_names()
+
+bake_df = read_csv("data/gbb_datasets/bakes.csv",
+                   na = c("N/A", "UNKNOWN", "Unknown", "")) |> 
+  janitor::clean_names()
+
+result_df = read_csv("data/gbb_datasets/results.csv",
+                     skip = 2,
+                     na = c("NA")) |> 
+  janitor::clean_names()
+
+baker_df
+bake_df
+result_df
+```
+## Combining datasets
+First, wrangle with the `baker_name` column in `baker_df` so that we have a 
+variable to work with when we join all three data frames together.
+```{r baker_name}
+baker_df = baker_df |> 
+  separate(baker_name,
+           into = c("first_name", "last_name"),
+           sep = " ",
+           remove = FALSE)
+```
+Then, join the three data frames based on series, episode, and first name.
+```{r combine_data_p3}
+final_df = baker_df |> 
+  full_join(bake_df,
+            by = join_by(first_name == baker,
+                         series == series)) |> 
+  full_join(result_df,
+            by = join_by(first_name == baker,
+                         series == series,
+                         episode == episode)) |> 
+  select(-(first_name:last_name)) |> 
+  relocate(episode, .after = series)
+
+final_df
+```
+
+## Export data
+```{r export_data}
+write_csv(final_df,
+          "data/gbb_datasets/final_gbb.csv")
+```
+
+
+
