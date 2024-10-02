@@ -2,9 +2,33 @@
 title: "P8105 HW2"
 author: "Zeqi Li"
 date: "2024-10-02"
-output: html_document
+output: github_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, include = FALSE}
+library(haven)
+library(tidyverse)
 ```
+
+# Problem 1
+
+## Load dataset
+
+```{r load_data, message = FALSE}
+subway_df = read_csv("data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") |>
+  janitor::clean_names() |> 
+  select(line:entry | vending | ada) |> 
+  mutate(entry = case_match(entry, 
+                            "YES" ~ TRUE,
+                            "NO" ~ FALSE))
+
+subway_df
+```
+This dataset contains the following variables that describe the NYC subway 
+entrance and exit system: `r colnames(subway_df)`. After loading the dataset, 
+`clean_names()` was applied to convert column names to snake case, `select()` 
+was applied to retain columns desired, and `mutate()` was applied to convert 
+the data type of the `entry` column from `chr` to `lgl`. The dataset after 
+tidying up has a dimension of `r dim(subway_df)`.
+
+
