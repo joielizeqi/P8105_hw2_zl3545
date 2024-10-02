@@ -210,5 +210,17 @@ write_csv(final_df,
           "data/gbb_datasets/final_gbb.csv")
 ```
 
+Data description
 
+Table
+
+## Viewership data
+```{r viewrship, message = FALSE}
+view_df = read_csv("data/gbb_datasets/viewers.csv") |> 
+  janitor::clean_names()
+
+view_df
+```
+The average viewership in Season 1 was `r mean(pull(view_df, series_1), na.rm = TRUE)`. 
+The average viewership in Season 5 was `r mean(pull(view_df, series_5))`.
 
