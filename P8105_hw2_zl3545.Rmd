@@ -146,7 +146,7 @@ tw_df
 ```
 
 The combined dataset contains data of the trash collected by three trash wheel 
-vessels: `r unique(pull(tw_df, 1))`. These data describe the time (ie. month, 
+vessels: `r unique(pull(tw_df, trash_wheel))`. These data describe the time (ie. month, 
 year, date), metrics (ie. weight in tons, volume in cubic yards), and types (ie. 
 plastic bottles, polystyrene, cigarette butts, etc.) of the trash collected. 
 Glass bottles data are exclusive to Mr. Trash Wheel and Professor Trash Wheel, 
@@ -190,16 +190,16 @@ baker_df = baker_df |>
 ```
 Then, join the three data frames based on series, episode, and first name.
 ```{r combine_data_p3}
-final_df = baker_df |> 
-  full_join(bake_df,
-            by = join_by(first_name == baker,
-                         series == series)) |> 
-  full_join(result_df,
-            by = join_by(first_name == baker,
+final_df = result_df |> 
+  left_join(bake_df,
+            by = join_by(baker == baker,
                          series == series,
                          episode == episode)) |> 
-  select(-(first_name:last_name)) |> 
-  relocate(episode, .after = series)
+  left_join(baker_df,
+            by = join_by(baker == first_name,
+                         series == series)) |> 
+  select(-baker & -last_name) |> 
+  relocate(baker_name)
 
 final_df
 ```
@@ -210,9 +210,44 @@ write_csv(final_df,
           "data/gbb_datasets/final_gbb.csv")
 ```
 
-Data description
+The final dataset has a dimension of `r dim(final_df)`. It contains information 
+about `r length(unique(pull(final_df, baker_name)))` bakers in the show, 
+including their appearance in terms of series and episode, age, occupation, 
+hometown, signature dish, show stopper dish, technical score, and their results. 
 
-Table
+After importing the three datasets (`baker`, `bake`, and `result`), the data 
+frames were tidied up by turning column names into snake case and replacing 
+missing data with `NA`. In order to join the three data frames, baker names in 
+the `baker` data frame were manipulated by separating the first name and last 
+name, since only first names are available for matching in the `bake` and 
+`result` data frames. Using `left_join()` and matching bakers' name, series, and 
+episode, `result` was first joined with `bake` since they were the largest and 
+the second largest data frames, respectively. Then, `left_join()` was applied 
+to join this data frame with the `baker` data frame by matching bakers' first 
+name and series. 
+
+After combining all three data frames together, the first name and last name 
+columns were deleted and only the full name column (`baker_name`) was kept. 
+To achieve a more meaningful arrangement of the columns, the `baker_name` 
+column was moved to the first position. 
+
+## Create table
+```{r table}
+winner_df = final_df |> 
+  select(baker_name, series, episode, result, technical) |> 
+  filter(series > 4,
+         result %in% c("STAR BAKER", "WINNER"))
+
+knitr::kable(winner_df)
+```
+There are a few predictable overall winners, such as Nadiya Hussain in season 6, 
+Candice Brown in season 7, Sophie Faldo in season 8, and Rahul Mandal in season 
+9. They were likely to win the whole season because they were among the ones 
+who won the most star baker titles duing the season. Some unexpected winners 
+include Nancy Birtwhistle in season 5 and David Atherton in season 10, since 
+they didn't win much star baker titles during the season. Another surprising 
+thing about this result is that the technical score (smaller numbers represent 
+higher ranking as I Googled) didn't always lead to star baker or winner.
 
 ## Viewership data
 ```{r viewrship, message = FALSE}
